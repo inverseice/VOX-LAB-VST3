@@ -1,0 +1,40 @@
+
+name: Build VOX LAB VST3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'VOX_LAB_VST3_Source.zip'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download project
+        uses: actions/checkout@v4
+
+      - name: Download JUCE
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          path: JUCE
+
+      - name: Extract source
+        shell: pwsh
+        run: |
+          Expand-Archive VOX_LAB_VST3_Source.zip -DestinationPath .
+
+      - name: Configure
+        run: cmake -S VOX_LAB_VST3 -B build -DJUCE_DIR="${{ github.workspace }}/JUCE"
+
+      - name: Compile VST3
+        run: cmake --build build --config Release
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: VOX-LAB-Windows-VST3
+          path: build/VOX_LAB_artefacts/Release/VST3/
